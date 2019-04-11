@@ -1,49 +1,45 @@
 const express = require("express")
 const router = express.Router();
+const Genre = require('../data/models/genre')
+const Joi = require("joi")
 
-router.get("", (req, res) => {
-    res.send(movies)
+
+router.get("/", async (req, res) => {
+    res.send(await Genre.find())
 })
 
-router.get("/:id", (req, res) => {
-    const movieFound = movies.find(m => m.id === parseInt(req.params.id))
+router.get("/:id", async (req, res) => {
+    const movieFound = await Genre.findById(req.params.id)
     if (!movieFound) return res.status(404).send("Movie with given id is not found")
     res.send(movieFound)
 })
 
-router.post("", (req, res) => {
+router.post("/", async (req, res) => {
     const { error } = validateGenre(req.body)
     if (error) return res.status(400).send(error.details[0].message)
 
-    const movie = {
-        id: movies.length + 1,
+    const movie = new Genre({
         name: req.body.name
-    }
-    movies.push(movie)
-    res.send(movie)
+    })
+    const savedMovie = await movie.save()
+    res.send(savedMovie)
 })
 
-router.put("/:id", (req, res) => {
-    let movie = movies.find(m => m.id === parseInt(req.params.id))
-    if (!movie) return res.status(404).send("Movie with given id is not found")
+router.put("/:id", async (req, res) => {
+    let genre = await Genre.findById(req.params.id)
+    if (!genre) return res.status(404).send("genre with given id is not found")
 
     const { error } = validateGenre(req.body)
     if (error) return res.status(400).send(error.details[0].message)
 
-    movie.name = req.body.name
-    console.log(movies)
-    res.send(movie)
+    genre.name = req.body.name
+    res.send(await genre.save())
 })
 
-router.delete("/:id", (req, res) => {
-    let movie = movies.find(m => m.id === parseInt(req.params.id))
-    if (!movie) return res.status(404).send("Movie with given id is not found")
+router.delete("/:id", async (req, res) => {
+    let genre = await Genre.findByIdAndDelete(req.params.id)
 
-    const movieIndex = movies.indexOf(movie)
-    movies.splice(movieIndex, 1)
-
-    //movies = movies.filter(m => m.id === parseInt(req.params.id))
-    res.send(movies)
+    res.send(genre)
 })
 
 function validateGenre(input) {
